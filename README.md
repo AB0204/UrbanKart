@@ -8,7 +8,6 @@
 * **Security:** JWT (auth), bcrypt/Argon2 (passwords), HTTPS (network)
 * **Other Tools:** Axios (API calls), Docker (optional deployment)
 
-
 ## Current Plan - Phases
 
 ### **Phase 1: Database Schema (MySQL)**
@@ -86,3 +85,214 @@
 * Secure API routes with role checks.
 * Use HTTPS (TLS).
 * Finalize README, API docs, and ERD diagram.
+
+## Planned Directory Structure
+```
+ecommerce-management-system/
+├── README.md
+├── .env.example
+├── .gitignore
+├── setup.sh                            # Quick project setup script
+│
+├── backend/                             # FastAPI Backend
+│   ├── .env
+│   ├── requirements.txt
+│   ├── main.py                          # FastAPI app entry point
+│   │
+│   ├── app/
+│   │   ├── __init__.py
+│   │   ├── config.py                    # Environment configuration
+│   │   ├── database.py                  # Database connection & session
+│   │   ├── dependencies.py              # Common dependencies (auth, db)
+│   │   │
+│   │   ├── core/                        # Core functionality
+│   │   │   ├── __init__.py
+│   │   │   ├── auth.py                  # JWT authentication
+│   │   │   ├── security.py              # Password hashing, security utils
+│   │   │   └── permissions.py           # Role-based permissions
+│   │   │
+│   │   ├── models/                      # SQLAlchemy ORM models
+│   │   │   ├── __init__.py
+│   │   │   ├── user.py
+│   │   │   ├── product.py
+│   │   │   ├── category.py
+│   │   │   ├── order.py
+│   │   │   ├── cart.py
+│   │   │   └── address.py
+│   │   │
+│   │   ├── schemas/                     # Pydantic schemas (DTOs)
+│   │   │   ├── __init__.py
+│   │   │   ├── user.py
+│   │   │   ├── product.py
+│   │   │   ├── category.py
+│   │   │   ├── order.py
+│   │   │   ├── cart.py
+│   │   │   └── address.py
+│   │   │
+│   │   ├── repositories/                # Data access layer (Repository pattern)
+│   │   │   ├── __init__.py
+│   │   │   ├── base.py                  # Base repository class
+│   │   │   ├── user_repository.py
+│   │   │   ├── product_repository.py
+│   │   │   ├── order_repository.py
+│   │   │   └── cart_repository.py
+│   │   │
+│   │   ├── services/                    # Business logic layer
+│   │   │   ├── __init__.py
+│   │   │   ├── auth_service.py
+│   │   │   ├── user_service.py
+│   │   │   ├── product_service.py
+│   │   │   ├── order_service.py
+│   │   │   └── cart_service.py
+│   │   │
+│   │   ├── api/                         # API route handlers
+│   │   │   ├── __init__.py
+│   │   │   ├── auth.py                  # Authentication endpoints
+│   │   │   ├── users.py                 # User management
+│   │   │   ├── products.py              # Product CRUD
+│   │   │   ├── orders.py                # Order management
+│   │   │   ├── cart.py                  # Shopping cart
+│   │   │   ├── admin.py                 # Admin-only endpoints
+│   │   │   └── main.py                  # API router aggregation
+│   │   │
+│   │   ├── utils/                       # Utility functions
+│   │   │   ├── __init__.py
+│   │   │   ├── logger.py                # Logging configuration
+│   │   │   └── validators.py            # Custom validators
+│   │   │
+│   │   └── tests/                       # Backend tests
+│   │       ├── __init__.py
+│   │       ├── conftest.py              # Pytest configuration
+│   │       ├── test_auth.py
+│   │       ├── test_products.py
+│   │       ├── test_orders.py
+│   │       └── test_cart.py
+│   │
+│   └── alembic/                         # Database migrations (optional)
+│       ├── versions/
+│       ├── script.py.mako
+│       ├── env.py
+│       └── alembic.ini
+│
+├── database/                            # Database scripts
+│   ├── README.md                        # Database setup instructions
+│   │
+│   ├── init/                           # Initial database setup
+│   │   ├── 01_create_database.sql
+│   │   └── 02_create_roles.sql
+│   │
+│   ├── schema/                         # Database schema definitions
+│   │   ├── 01_users_table.sql
+│   │   ├── 02_categories_table.sql
+│   │   ├── 03_products_table.sql
+│   │   ├── 04_addresses_table.sql
+│   │   ├── 05_cart_items_table.sql
+│   │   ├── 06_orders_table.sql
+│   │   ├── 07_order_items_table.sql
+│   │   └── 08_inventory_log_table.sql
+│   │
+│   ├── triggers/                       # Database triggers
+│   │   ├── inventory_triggers.sql
+│   │   └── order_triggers.sql
+│   │
+│   ├── procedures/                     # Stored procedures
+│   │   ├── order_management.sql
+│   │   └── inventory_management.sql
+│   │
+│   ├── seed/                           # Sample data
+│   │   ├── dev_data.sql                # Development data
+│   │   └── test_data.sql               # Test data
+│   │
+│   └── scripts/                        # Database utility scripts
+│       ├── setup_dev.sh               # Development setup
+│       ├── reset_db.sh                # Reset database (dev only)
+│       └── run_all.sh                 # Run all SQL files in order
+│
+├── frontend/                           # React Frontend
+│   ├── public/
+│   │   ├── index.html
+│   │   └── favicon.ico
+│   │
+│   ├── src/
+│   │   ├── index.tsx                   # App entry point
+│   │   ├── App.tsx
+│   │   ├── index.css
+│   │   │
+│   │   ├── components/                 # Reusable UI components
+│   │   │   ├── layout/
+│   │   │   │   ├── Header.tsx
+│   │   │   │   ├── Navbar.tsx
+│   │   │   │   ├── Footer.tsx
+│   │   │   │   └── Layout.tsx
+│   │   │   │
+│   │   │   ├── product/
+│   │   │   │   ├── ProductCard.tsx
+│   │   │   │   ├── ProductList.tsx
+│   │   │   │   └── ProductDetail.tsx
+│   │   │   │
+│   │   │   ├── cart/
+│   │   │   │   ├── CartItem.tsx
+│   │   │   │   └── CartSummary.tsx
+│   │   │   │
+│   │   │   ├── forms/
+│   │   │   │   ├── LoginForm.tsx
+│   │   │   │   ├── RegisterForm.tsx
+│   │   │   │   └── CheckoutForm.tsx
+│   │   │   │
+│   │   │   ├── common/
+│   │   │   │   ├── Loading.tsx
+│   │   │   │   ├── ErrorMessage.tsx
+│   │   │   │   └── ProtectedRoute.tsx
+│   │   │   │
+│   │   │   └── admin/
+│   │   │       ├── ProductManagement.tsx
+│   │   │       └── OrderManagement.tsx
+│   │   │
+│   │   ├── pages/                      # Page components
+│   │   │   ├── Home.tsx
+│   │   │   ├── Products.tsx
+│   │   │   ├── ProductDetail.tsx
+│   │   │   ├── Cart.tsx
+│   │   │   ├── Checkout.tsx
+│   │   │   ├── Profile.tsx
+│   │   │   ├── Login.tsx
+│   │   │   ├── Register.tsx
+│   │   │   └── admin/
+│   │   │       └── AdminDashboard.tsx
+│   │   │
+│   │   ├── hooks/                      # Custom React hooks
+│   │   │   ├── useAuth.ts
+│   │   │   ├── useCart.ts
+│   │   │   └── useApi.ts
+│   │   │
+│   │   ├── context/                    # React Context providers
+│   │   │   ├── AuthContext.tsx
+│   │   │   └── CartContext.tsx
+│   │   │
+│   │   ├── services/                   # API service layer
+│   │   │   ├── api.ts                  # Axios configuration
+│   │   │   ├── authService.ts
+│   │   │   ├── productService.ts
+│   │   │   ├── orderService.ts
+│   │   │   └── cartService.ts
+│   │   │
+│   │   ├── types/                      # TypeScript type definitions
+│   │   │   ├── auth.ts
+│   │   │   ├── product.ts
+│   │   │   ├── order.ts
+│   │   │   └── cart.ts
+│   │   │
+│   │   └── utils/                      # Utility functions
+│   │       ├── constants.ts
+│   │       ├── helpers.ts
+│   │       └── formatters.ts
+│   │
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── tailwind.config.js
+│
+└── docs/                               # Essential documentation only
+    ├── API.md                          # API documentation
+    ├── DATABASE.md                     # Database schema docs
+    └── SETUP.md                        # Development setup guide
+```
