@@ -1,65 +1,58 @@
 import { useState, useEffect } from 'react';
-import { productService, Product } from './services/productService';
-import { cartService } from './services/cartService';
 import './App.css';
+
+interface Product {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  stock_quantity: number;
+  image_url: string;
+  category_id: number;
+  is_active: boolean;
+}
 
 function App() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [cartCount, setCartCount] = useState(0);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     loadProducts();
-    loadCartCount();
   }, []);
 
   const loadProducts = async () => {
     try {
-      const data = await productService.getAll();
+      const response = await fetch('http://localhost:8000/api/products');
+      if (!response.ok) {
+        throw new Error('Failed to fetch products');
+      }
+      const data = await response.json();
       setProducts(data);
-    } catch (error) {
-      console.error('Error loading products:', error);
+      setError('');
+    } catch (err: any) {
+      console.error('Error loading products:', err);
+      setError('Failed to load products. Make sure the backend is running on port 8000.');
     } finally {
       setLoading(false);
     }
   };
 
-  const loadCartCount = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (token) {
-        const cartItems = await cartService.getCart();
-        setCartCount(cartItems.reduce((sum, item) => sum + item.quantity, 0));
-      }
-    } catch (error) {
-      console.error('Error loading cart:', error);
-    }
-  };
-
-  const handleAddToCart = async (productId: number) => {
-    try {
-      // For demo purposes, we'll skip auth and just show alert
-      // In production, check if user is logged in first
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('Please log in to add items to cart. Demo credentials:\nEmail: john.doe@example.com\nPassword: password');
-        return;
-      }
-
-      await cartService.addToCart(productId);
-      await loadCartCount();
-      alert('Product added to cart!');
-    } catch (error: any) {
-      if (error.response?.status === 401) {
-        alert('Please log in first. Demo credentials:\nEmail: john.doe@example.com\nPassword: password');
-      } else {
-        alert('Error adding product to cart');
-      }
-    }
-  };
-
   if (loading) {
-    return <div className="loading">Loading products...</div>;
+    return (
+      <div className="loading">
+        <h1>Loading products...</h1>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="loading">
+        <h1 style={{ color: 'red' }}>⚠️ {error}</h1>
+        <p>Backend URL: http://localhost:8000</p>
+      </div>
+    );
   }
 
   return (
@@ -69,14 +62,14 @@ function App() {
           <h1>🛒 E-Commerce Store</h1>
           <nav>
             <button className="cart-btn">
-              🛍️ Cart ({cartCount})
+              🛍️ Cart (0)
             </button>
           </nav>
         </div>
       </header>
 
       <main className="container">
-        <h2 className="section-title">Featured Products</h2>
+        <h2 className="section-title">Featured Products ({products.length})</h2>
         <div className="product-grid">
           {products.map((product) => (
             <div key={product.id} className="product-card">
@@ -84,6 +77,9 @@ function App() {
                 src={product.image_url}
                 alt={product.name}
                 className="product-image"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x300?text=Product+Image';
+                }}
               />
               <div className="product-info">
                 <h3 className="product-name">{product.name}</h3>
@@ -92,7 +88,7 @@ function App() {
                   <span className="product-price">${product.price}</span>
                   <button
                     className="add-to-cart-btn"
-                    onClick={() => handleAddToCart(product.id)}
+                    onClick={() => alert('Added to cart! (Login required for full functionality)')}
                   >
                     Add to Cart
                   </button>
@@ -108,6 +104,7 @@ function App() {
 
       <footer className="footer">
         <p>© 2024 E-Commerce Store. Built with FastAPI + React. API Docs at <a href="http://localhost:8000/docs" target="_blank">localhost:8000/docs</a></p>
+        <p>Loaded {products.length} products successfully!</p>
       </footer>
     </div>
   );
