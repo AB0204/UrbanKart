@@ -92,7 +92,7 @@ function App() {
     return (
       <div className="loading">
         <div className="spinner"></div>
-        <h1>Loading AB'Mart...</h1>
+        <h1>Loading UrbanKart...</h1>
       </div>
     );
   }
@@ -102,8 +102,8 @@ function App() {
       <header className="header">
         <div className="container header-content">
           <div className="logo-section">
-            <h1 className="logo">🛒 AB'Mart</h1>
-            <p className="tagline">Modern Shopping Experience</p>
+            <h1 className="logo">🏙️ UrbanKart</h1>
+            <p className="tagline">Your Urban Lifestyle Destination</p>
           </div>
           <nav className="nav">
             <button className="cart-btn" onClick={() => alert(`Cart has ${cartCount} items!`)}>
@@ -204,7 +204,7 @@ function App() {
 
       <footer className="footer">
         <div className="container">
-          <p>© 2024 AB'Mart - Modern Shopping Experience</p>
+          <p>© 2024 UrbanKart - Your Urban Lifestyle Destination</p>
           <p>Built with ❤️ using FastAPI + React</p>
         </div>
       </footer>

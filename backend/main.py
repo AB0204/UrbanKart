@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.main import api_router
 
-app = FastAPI(title="AB'Mart API", version="1.0.0", description="Modern Shopping Experience")
+app = FastAPI(title="UrbanKart API", version="1.0.0", description="Your Urban Lifestyle Destination")
 
 # CORS configuration
 app.add_middleware(
@@ -17,4 +17,4 @@ app.include_router(api_router, prefix="/api")
 
 @app.get("/")
 def read_root():
-    return {"message": "E-Commerce API is running"}
+    return {"message": "UrbanKart API is running"}
