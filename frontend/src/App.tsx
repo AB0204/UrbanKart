@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { MOCK_PRODUCTS } from './mockProducts';
 import './App.css';
 
 interface Product {
@@ -26,7 +27,6 @@ function App() {
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(0);
   const [sortBy, setSortBy] = useState('name');
@@ -41,20 +41,11 @@ function App() {
   }, [products, searchQuery, selectedCategory, sortBy]);
 
   const loadProducts = async () => {
-    try {
-      const response = await fetch('http://localhost:8000/api/products');
-      if (!response.ok) {
-        throw new Error('Failed to fetch products');
-      }
-      const data = await response.json();
-      setProducts(data);
-      setError('');
-    } catch (err: any) {
-      console.error('Error loading products:', err);
-      setError('Failed to load products. Make sure the backend is running on port 8000.');
-    } finally {
+    // Simulate API delay for realism
+    setTimeout(() => {
+      setProducts(MOCK_PRODUCTS as Product[]);
       setLoading(false);
-    }
+    }, 500);
   };
 
   const filterAndSortProducts = () => {
@@ -102,15 +93,6 @@ function App() {
       <div className="loading">
         <div className="spinner"></div>
         <h1>Loading AB'Mart...</h1>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="loading error">
-        <h1>⚠️ {error}</h1>
-        <p>Backend URL: http://localhost:8000</p>
       </div>
     );
   }
