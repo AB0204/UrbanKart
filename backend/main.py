@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.main import api_router
 
-app = FastAPI(title="E-Commerce API", version="1.0.0")
+app = FastAPI(title="AB'Mart API", version="1.0.0", description="Modern Shopping Experience")
 
 # CORS configuration
 app.add_middleware(
