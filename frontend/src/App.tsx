@@ -89,7 +89,7 @@ function App() {
     setFilteredProducts(filtered);
   };
 
-  const handleAddToCart = (product: Product) => {
+  const handleAddToCart = () => {
     setCartCount(prev => prev + 1);
     // Simple animation feedback
     const btn = document.activeElement as HTMLElement;
@@ -208,7 +208,7 @@ function App() {
                     <span className="product-price">${product.price.toFixed(2)}</span>
                     <button
                       className="add-to-cart-btn"
-                      onClick={() => handleAddToCart(product)}
+                      onClick={() => handleAddToCart()}
                     >
                       Add to Cart
                     </button>
