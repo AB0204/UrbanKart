@@ -2,6 +2,8 @@
 
 > Full-stack e-commerce platform with modern architecture and robust database design
 
+**🚀 Live Demo**: [https://urbankart-store.surge.sh](https://urbankart-store.surge.sh) *(Frontend only - Backend requires local setup)*
+
 [![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![React](https://img.shields.io/badge/React-18+-61DAFB.svg)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6.svg)](https://www.typescriptlang.org/)
