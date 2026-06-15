@@ -1,11 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from app.database import get_db
 from app.models.product import Product
 from app.models.user import User
 from app.schemas.product import ProductResponse, ProductCreate, ProductUpdate
 from app.core.auth import get_current_user, get_current_admin
+from app.core.redis import RedisCache
+
 
 router = APIRouter()
 
@@ -63,26 +65,75 @@ MOCK_PRODUCTS = [
 
 
 @router.get("/", response_model=List[ProductResponse])
-def get_products(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def get_products(cursor: Optional[int] = None, limit: int = 10, db: Session = Depends(get_db)):
+    """
+    Get products using cursor-based pagination and Redis cache-aside.
+    """
+    cache_key = f"products:cursor:{cursor}:limit:{limit}"
+    cached_products = RedisCache.get(cache_key)
+    if cached_products is not None:
+        return cached_products
+        
     try:
-        products = db.query(Product).offset(skip).limit(limit).all()
+        query = db.query(Product).filter(Product.is_active == True)
+        if cursor is not None:
+            query = query.filter(Product.id > cursor)
+        products = query.order_by(Product.id.asc()).limit(limit).all()
+        
+        # Serialize database records to JSON-compatible list
+        results = []
+        for p in products:
+            results.append({
+                "id": p.id,
+                "name": p.name,
+                "description": p.description,
+                "price": float(p.price),
+                "stock_quantity": p.stock_quantity,
+                "image_url": p.image_url,
+                "category_id": p.category_id,
+                "is_active": p.is_active
+            })
+        
+        RedisCache.set(cache_key, results, expire=300) # 5 min cache
         return products
     except Exception as e:
-        # Return mock data if database is not available
         print(f"Database error, using mock data: {e}")
-        return MOCK_PRODUCTS
+        mock_list = MOCK_PRODUCTS
+        if cursor is not None:
+            mock_list = [p for p in mock_list if p["id"] > cursor]
+        results = mock_list[:limit]
+        return results
 
 @router.get("/{product_id}", response_model=ProductResponse)
 def get_product(product_id: int, db: Session = Depends(get_db)):
+    """
+    Get a single product with Redis cache-aside.
+    """
+    cache_key = f"product:{product_id}"
+    cached_product = RedisCache.get(cache_key)
+    if cached_product is not None:
+        return cached_product
+        
     try:
         product = db.query(Product).filter(Product.id == product_id).first()
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")
+            
+        result = {
+            "id": product.id,
+            "name": product.name,
+            "description": product.description,
+            "price": float(product.price),
+            "stock_quantity": product.stock_quantity,
+            "image_url": product.image_url,
+            "category_id": product.category_id,
+            "is_active": product.is_active
+        }
+        RedisCache.set(cache_key, result, expire=3600) # 1 hour cache
         return product
     except HTTPException:
         raise
     except Exception as e:
-        # Try to find in mock data
         print(f"Database error, checking mock data: {e}")
         for product in MOCK_PRODUCTS:
             if product["id"] == product_id:
@@ -99,6 +150,10 @@ def create_product(
     db.add(db_product)
     db.commit()
     db.refresh(db_product)
+    
+    # Invalidate cache
+    RedisCache.clear_pattern("products:cursor:*")
+    
     return db_product
 
 @router.put("/{product_id}", response_model=ProductResponse)
@@ -117,6 +172,11 @@ def update_product(
     
     db.commit()
     db.refresh(db_product)
+    
+    # Invalidate cache
+    RedisCache.delete(f"product:{product_id}")
+    RedisCache.clear_pattern("products:cursor:*")
+    
     return db_product
 
 @router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -131,4 +191,9 @@ def delete_product(
     
     db.delete(db_product)
     db.commit()
+    
+    # Invalidate cache
+    RedisCache.delete(f"product:{product_id}")
+    RedisCache.clear_pattern("products:cursor:*")
+    
     return None
