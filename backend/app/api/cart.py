@@ -12,22 +12,25 @@ router = APIRouter()
 
 @router.get("/", response_model=List[dict])
 def get_cart(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    cart_items = db.query(CartItem).filter(CartItem.user_id == current_user.id).all()
-    
-    result = []
-    for item in cart_items:
-        product = db.query(Product).filter(Product.id == item.product_id).first()
-        result.append({
+    rows = (
+        db.query(CartItem, Product)
+        .join(Product, CartItem.product_id == Product.id, isouter=True)
+        .filter(CartItem.user_id == current_user.id)
+        .all()
+    )
+
+    return [
+        {
             "id": item.id,
             "product_id": item.product_id,
             "product_name": product.name if product else None,
             "product_price": float(product.price) if product else None,
             "product_image": product.image_url if product else None,
             "quantity": item.quantity,
-            "subtotal": float(product.price * item.quantity) if product else 0
-        })
-    
-    return result
+            "subtotal": float(product.price * item.quantity) if product else 0,
+        }
+        for item, product in rows
+    ]
 
 @router.post("/", response_model=CartItemResponse, status_code=status.HTTP_201_CREATED)
 def add_to_cart(
@@ -35,27 +38,29 @@ def add_to_cart(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    # Check if product exists
     product = db.query(Product).filter(Product.id == cart_item.product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
-    
-    # Check if item already in cart
+
     existing_item = db.query(CartItem).filter(
         CartItem.user_id == current_user.id,
         CartItem.product_id == cart_item.product_id
     ).first()
-    
+
+    desired_qty = (existing_item.quantity + cart_item.quantity) if existing_item else cart_item.quantity
+    if desired_qty > product.stock_quantity:
+        raise HTTPException(status_code=400, detail="Requested quantity exceeds available stock")
+
     if existing_item:
-        existing_item.quantity += cart_item.quantity
+        existing_item.quantity = desired_qty
         db.commit()
         db.refresh(existing_item)
         return existing_item
-    
+
     new_item = CartItem(
         user_id=current_user.id,
         product_id=cart_item.product_id,
-        quantity=cart_item.quantity
+        quantity=cart_item.quantity,
     )
     db.add(new_item)
     db.commit()
@@ -76,7 +81,11 @@ def update_cart_item(
     
     if not db_item:
         raise HTTPException(status_code=404, detail="Cart item not found")
-    
+
+    product = db.query(Product).filter(Product.id == db_item.product_id).first()
+    if product and cart_item.quantity > product.stock_quantity:
+        raise HTTPException(status_code=400, detail="Requested quantity exceeds available stock")
+
     db_item.quantity = cart_item.quantity
     db.commit()
     db.refresh(db_item)
